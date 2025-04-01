@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prediction Result for {{ symbol }}</h1>
+        </header>
+        <main>
+            <p>The share of {{symbol}} : <strong>{{ result }}</strong></p>
+            <p> Remember, the predictions are not the accurate and stock market is subject to market risk. Its solely the responsibility of the Trader</p>
+            <a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a>
+        </main>
+    </div>
+</body>
+</html>

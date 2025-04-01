@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Trading App</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('main.login') }}">Login</a></li>
+                <li><a href="{{ url_for('main.register') }}">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Real-Time Trading Simulation</h2>
+            <p>Simulate trades in real-time and analyze market trends.</p>
+        </section>
+        <section>
+            <h2>Latest Finance News</h2>
+            <div id="news-container">
+                {% for article in news %}
+                    <div class="news-item">
+                        <h3>{{ article.title }}</h3>
+                        <p>{{ article.description }}</p>
+                        <a href="{{ article.url }}" target="_blank">Read more</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        <section>
+            <h2>Market Charts</h2>
+            <div id="chart-container">
+                <!-- Charts will be displayed here -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Trading App. All rights reserved.</p>
+    </footer>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>

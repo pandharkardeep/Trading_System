@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome to Your Trading Dashboard</h1>
+            <nav>
+                <a href="{{ url_for('main.index') }}">Home</a>
+                <a href="{{ url_for('main.logout') }}">Logout</a>
+            </nav>
+        </header>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+            {% for category, message in messages %}
+                alert("{{ message }}");
+            {% endfor %}
+            </script>
+        {% endif %}
+        {% endwith %}
+        <main>
+            <form action="{{ url_for('main.predict') }}" method="post">
+                <label for="symbol">Enter Stock Symbol:</label>
+                <input type="text" id="symbol" name="symbol" required>
+                <button type="submit">Predict</button>
+            </form>
+            <section id="trade-simulation">
+                <h2>Trade Simulation</h2>
+                <form id="buy-form" method="POST">
+                    <input type="hidden" name="trade_type" value="buy">
+                    <label for="stock-symbol-buy">Stock Symbol:</label>
+                    <input type="text" id="stock-symbol-buy" name="stock-symbol" value="{{ stock_symbol }}" required>
+                    
+                    <label for="buying_price">Buy Price:</label>
+                    <input type="number" step="0.01" id="buying_price" name = "price" required>
+                    
+                    <label for="disclosed_quantity">Quantity:</label>
+                    <input type="number" id="disclosed_quantity" name="quantity" required>
+                    
+                    <label for="stop_loss">Stop Loss (Optional):</label>
+                    <input type="number" step="0.01" id="stop_loss" name="stop_loss">
+                    
+                    <label for="bulk_deal">Bulk Deal:</label>
+                    <input type="checkbox" id="bulk_deal" name="bulk_deal">
+                    
+                    <button type="submit">Buy</button>
+                </form>
+            
+                <!-- Sell Form -->
+                <form id="sell-form" method="POST">
+                    <input type="hidden" name="trade_type" value="sell">
+                    <label for="stock-symbol-sell">Stock Symbol:</label>
+                    <input type="text" id="stock-symbol-sell" name="stock-symbol" value="{{ stock_symbol }}" required>
+                    
+                    <label for="selling_price">Sell Price:</label>
+                    <input type="number" step="0.01" id="selling_price" name="price" required>
+                    
+                    <label for="disclosed_quantity_sell">Quantity:</label>
+                    <input type="number" id="disclosed_quantity_sell" name="quantity" required>
+                    
+                    <label for="stop_loss_sell">Stop Loss (Optional):</label>
+                    <input type="number" step="0.01" id="stop_loss_sell" name="stop_loss">
+                    
+                    <label for="bulk_deal_sell">Bulk Deal:</label>
+                    <input type="checkbox" id="bulk_deal_sell" name="bulk_deal">
+                    
+                    <button type="submit">Sell</button>
+                </form>
+                <section id="Portfolio">
+                    <h2>Your Portfolio</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Stock Symbol</th>
+                                <th>Quantity</th>
+                                <th>Total shares</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in portfolio %}
+                                <tr>
+                                    <td>{{ stock.stock_symbol }}</td>
+                                    <td>{{ stock.quantity }}</td>
+                                    <td>{{ stock.total_shares }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+                
+                <section id="trade-details">
+                    <h2>Your Trades</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Stock Symbol</th>
+                                <th>Trade Type</th>
+                                <th>Price per Share</th>
+                                <th>Quantity</th>
+                                <th>Total Amount</th>
+                                <th>Stop Loss</th>
+                                <th>Bulk Deal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trade in trades %}
+                                <tr>
+                                    <td>{{ trade.stock_symbol }}</td>
+                                    <td>{{ trade.trade_type|capitalize }}</td>
+                                    <td>{{ trade.price_per_share }}</td>
+                                    <td>{{ trade.disclosed_quantity }}</td>
+                                    <td>{{ trade.total_amount }}</td>
+                                    <td>{{ trade.stop_loss if trade.stop_loss else 'N/A' }}</td>
+                                    <td>{{ 'Yes' if trade.bulk_deal else 'No' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+                <div id="trade-result">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <p>{{ message }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </section>
+            <section id="real-time-prices">
+                <h2>Real-Time Prices</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change %</th>
+                            <th>Change ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for (symbol, price, changeP, change) in prices %}
+                            <tr>
+                                <td>{{ symbol }}</td>
+                                <td>${{ price }}</td>
+                                <td>{{ changeP }}</td>
+                                <td>${{ change }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="top-performers">
+                <h2>Top Performers of the Day</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change %</th>
+                            <th>Change ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for (symbol, price, changeP, change) in top_performers %}
+                            <tr>
+                                <td>{{ symbol }}</td>
+                                <td>${{ price }}</td>
+                                <td>{{ changeP }}</td>
+                                <td>${{ change }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            <section id="bad-performers">
+                <h2>Bad Performers of the Day</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Price</th>
+                            <th>Change %</th>
+                            <th>Change ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for symbol, price, changeP, change in bad_performers %}
+                            <tr>
+                                <td>{{ symbol }}</td>
+                                <td>${{ price }}</td>
+                                <td>{{ changeP }}</td>
+                                <td>${{ change }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+            <section id="news">
+                <h2>Latest Finance News</h2>
+                <div id="news-content">
+                    {% for article in news %}
+                        <div class="news-item">
+                            <h3>{{ article.title }}</h3>
+                            <p>{{ article.description }}</p>
+                            <a href="{{ article.url }}" target="_blank">Read more</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    
+    
+    
+    <script>
+    document.getElementById("predict-form").addEventListener("submit", function(event) {
+        event.preventDefault();
+        let symbol = document.getElementById("predict-symbol").value;
+    
+        fetch("/predict", {
+            method: "POST",
+            body: new URLSearchParams({ symbol: symbol }),
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("prediction-result").innerHTML = `<p style="color: red;">${data.error}</p>`;
+            } else {
+                document.getElementById("prediction-result").innerHTML = `<p>Predicted Price for ${data.symbol}: $${data.predicted_price}</p>`;
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+    </script>
+    
+</body>
+</html>
