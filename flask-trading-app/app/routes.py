@@ -156,9 +156,6 @@ def dashboard():
     news = fetch_financial_news()
     return render_template('dashboard.html', trades=trades, prices=real_time_price, top_performers = top_performers, bad_performers = bad_performers,  news=news, stock_symbol=stock_symbol, portfolio=portfolio)
 
-
-
-
 @main.route('/predict', methods=['GET', 'POST'])
 @login_required
 def predict():
