@@ -69,7 +69,7 @@ def get_top_performers(api_key):
 def fetch_financial_news():
     # Placeholder for news fetching logic
     # This should use a web scraping tool or API
-    api_key = "8d3b7ee5ea0a46fab86f1f0043c8e132"
+    api_key = "NEWS_API_KEY"
     response = requests.get(f"https://newsapi.org/v2/everything?q=finance&apiKey={api_key}")
     if response.status_code == 200:
         return response.json().get('articles')

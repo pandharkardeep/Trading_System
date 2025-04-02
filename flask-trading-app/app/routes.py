@@ -17,14 +17,14 @@ from datetime import datetime
 from urllib.parse import urlparse
 from flask_session import Session
 main = Blueprint('main', __name__)
-client = MongoClient('mongodb+srv://pandharkardeep35:7762Q0QmsBVhYqLF@deep.pfmz7xz.mongodb.net')
+client = MongoClient('MongoURI')
 from flask_login import LoginManager
 
 user_db = client['Users']
 trade_db = client['Trades']
 portfolio_db = client['portfolio_db']
 portfolio_collection = portfolio_db['portfolio']
-fmp_api_key = "3hm0DNDCC5NhmWRn1TDxIoHlDZnmLCLd"
+fmp_api_key = "FMP_API_KEY"
 @main.route('/')
 def index():
     news = fetch_financial_news()

@@ -28,7 +28,7 @@ def fetch_stock_data(symbol):
 
 
 # Replace with your actual FMP API Key
-FMP_API_KEY = "3hm0DNDCC5NhmWRn1TDxIoHlDZnmLCLd"
+FMP_API_KEY = "FMP_API_KEY"
 
 
 def fetch_fmp_indicator(symbol, indicator):
