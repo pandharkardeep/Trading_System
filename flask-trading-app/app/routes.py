@@ -91,15 +91,14 @@ def dashboard():
         return redirect(url_for('main.login', next=request.url))
     stock_symbol = request.args.get('stock-symbol', 'AAPL')  # Default to 'AAPL' if no symbol is provided
     if request.method == 'POST':
-        price_per_share = int(request.form['price'])
-        stop_loss = request.form.get('stop_loss', None)
+        price_per_share = get_real_time_price([stock_symbol], fmp_api_key)
+        (sym, price_per_share, *_) = price_per_share[0]
+        stop_loss = request.form.get('stop_loss', 0)
         disclosed_quantity = int(request.form['quantity'])
         bulk_deal = request.form.get('bulk_deal', 'off') == 'on'
         total_amount = price_per_share * disclosed_quantity
         trade_type = request.form['trade_type']
-        
-        
-        
+          
         if trade_type == "buy":
             trade_db.trades.insert_one({
             'user_id' : current_user.get_id(),
@@ -125,26 +124,26 @@ def dashboard():
             if user_shares < disclosed_quantity:
                 flash(f'You do not have enough shares to sell', 'danger')
                 return redirect(url_for('main.dashboard'))  # Return before making any changes
-
+            else:
             # Only update if the user has enough shares
-            result = portfolio_collection.update_one(
-                {"user_id": current_user.get_id(), "stock_symbol": stock_symbol},
-                {"$inc": {"total_shares": -disclosed_quantity}}
-            )
-            trade_db.trades.insert_one({
-                'user_id' : current_user.get_id(),
-                'stock_symbol': stock_symbol,
-                'buying_price_per_share': price_per_share,
-                'trade_type' : trade_type,
-                'stop_loss': stop_loss if stop_loss else None,
-                'disclosed_quantity': disclosed_quantity,
-                'bulk_deal': bulk_deal,
-                'total_amount': total_amount,
-                'trade_date': datetime.utcnow()
-            })
-            print(f"Updated portfolio: Matched {result.matched_count}, Modified {result.modified_count}")
+                result = portfolio_collection.update_one(
+                    {"user_id": current_user.get_id(), "stock_symbol": stock_symbol},
+                    {"$inc": {"total_shares": -disclosed_quantity}}
+                )
+                trade_db.trades.insert_one({
+                    'user_id' : current_user.get_id(),
+                    'stock_symbol': stock_symbol,
+                    'buying_price_per_share': price_per_share,
+                    'trade_type' : trade_type,
+                    'stop_loss': stop_loss if stop_loss else None,
+                    'disclosed_quantity': disclosed_quantity,
+                    'bulk_deal': bulk_deal,
+                    'total_amount': total_amount,
+                    'trade_date': datetime.utcnow()
+                })
+                print(f"Updated portfolio: Matched {result.matched_count}, Modified {result.modified_count}")
 
-            flash(f'Sold {disclosed_quantity} shares of {stock_symbol} at ${price_per_share:.2f} each on {datetime.utcnow()}.', 'success')
+                flash(f'Sold {disclosed_quantity} shares of {stock_symbol} at ${price_per_share:.2f} each on {datetime.utcnow()}.', 'success')
     #indices = ['^GSPC', '^IXIC', '^DJI', '^VIX']  # S&P 500, Nasdaq, Dow Jones, Volatility Index
     stocks = ['AAPL', 'TSLA', 'NFLX', 'GOOGL', 'MSFT', 'DBRX', 'CRM'] 
     top_performers, bad_performers = get_top_performers(fmp_api_key)
@@ -155,7 +154,10 @@ def dashboard():
     real_time_price = get_real_time_price(all_symbols, fmp_api_key)
     
     news = fetch_financial_news()
-    return render_template('dashboard.html', trades=trades, prices=real_time_price, top_performers = top_performers, bad_performers = bad_performers,  news=news, stock_symbol=stock_symbol)
+    return render_template('dashboard.html', trades=trades, prices=real_time_price, top_performers = top_performers, bad_performers = bad_performers,  news=news, stock_symbol=stock_symbol, portfolio=portfolio)
+
+
+
 
 @main.route('/predict', methods=['GET', 'POST'])
 @login_required

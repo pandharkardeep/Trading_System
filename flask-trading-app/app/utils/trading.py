@@ -50,7 +50,7 @@ def get_real_time_price(stock_symbols, api_key):
     params = {"apikey": api_key}
     
     response = requests.get(url, params=params)
- 
+    print(response.text, fetch_data(url, params))
     return fetch_data(url, params)
 
 def get_top_performers(api_key):
