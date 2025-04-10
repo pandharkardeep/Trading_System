@@ -53,7 +53,7 @@ flask-trading-app
 
 4. Run the application:
    ```
-   flask run
+   python application.py
    ```
 
 ## Usage
